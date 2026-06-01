@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="1200" height="1200">
+  <!-- Intentional transparent padding to verify trim behavior with a realistic lockup. -->
+  <g transform="translate(305 500)">
+    <path d="m0 105 72-94 48 59 38-46 71 81Z" fill="#0f766e"/>
+    <path d="m71 105 49-64 49 64Z" fill="#5eead4"/>
+    <text x="260" y="87" fill="#134e4a" font-family="Arial, sans-serif" font-size="78" font-weight="700">Summit</text>
+    <text x="266" y="126" fill="#64748b" font-family="Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="10">CLOUD</text>
+  </g>
+</svg>

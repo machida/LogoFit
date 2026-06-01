@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 128" width="500" height="128">
+  <g transform="translate(12 10)">
+    <path d="M54 0 108 54 54 108 0 54Z" fill="#2563eb"/>
+    <path d="m54 16 12 38-12 38-12-38Z" fill="#dbeafe"/>
+    <path d="m16 54 38-12 38 12-38 12Z" fill="#fff"/>
+  </g>
+  <text x="146" y="77" fill="#172554" font-family="Arial, sans-serif" font-size="49" font-weight="700">kiteworks</text>
+</svg>

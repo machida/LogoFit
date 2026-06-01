@@ -1,0 +1,53 @@
+:root {
+  /* slate-900 ベース + バイオレットアクセント（wraptalk 準拠） */
+  --bg: #0f172a; /* slate-900 */
+  --bg-elev: #1e293b; /* slate-800 panel/card */
+  --bg-elev2: #334155; /* slate-700 hover/badge */
+  --bg-input: #0b1220; /* 入力フィールド（沈める） */
+  --border: #334155; /* slate-700 */
+  --text: #f1f5f9; /* slate-100 */
+  --text-dim: #94a3b8; /* slate-400 */
+  --accent: #7c3aed; /* violet-600 */
+  --accent-strong: #6d28d9; /* violet-700 hover */
+  --accent-soft: #a78bfa; /* violet-400 text/border */
+  --danger: #f87171;
+  --ok: #34d399;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  --sans: 'Avenir Next', 'Hiragino Sans', 'Noto Sans JP', 'Segoe UI', Roboto, sans-serif;
+  --mono: 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+
+  color-scheme: dark;
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+button {
+  font-family: inherit;
+}
+
+input,
+select {
+  font-family: inherit;
+}

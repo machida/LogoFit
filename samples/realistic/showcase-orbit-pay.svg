@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 132" width="520" height="132">
+  <g transform="translate(12 12)">
+    <circle cx="54" cy="54" r="43" fill="none" stroke="#7c3aed" stroke-width="16"/>
+    <circle cx="91" cy="26" r="12" fill="#f59e0b"/>
+    <circle cx="54" cy="54" r="14" fill="#7c3aed"/>
+  </g>
+  <text x="142" y="79" fill="#312e81" font-family="Arial, sans-serif" font-size="56" font-weight="700">orbit</text>
+  <text x="277" y="79" fill="#7c3aed" font-family="Arial, sans-serif" font-size="56" font-weight="400">pay</text>
+</svg>

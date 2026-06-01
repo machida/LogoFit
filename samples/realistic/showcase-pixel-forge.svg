@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 270" width="260" height="270">
+  <g transform="translate(36 20)">
+    <rect width="56" height="56" rx="9" fill="#7c3aed"/>
+    <rect x="66" width="56" height="56" rx="9" fill="#a78bfa"/>
+    <rect x="132" width="56" height="56" rx="9" fill="#c4b5fd"/>
+    <rect y="66" width="56" height="56" rx="9" fill="#a78bfa"/>
+    <rect x="66" y="66" width="56" height="56" rx="9" fill="#5b21b6"/>
+    <rect x="132" y="66" width="56" height="56" rx="9" fill="#a78bfa"/>
+    <rect y="132" width="56" height="56" rx="9" fill="#c4b5fd"/>
+    <rect x="66" y="132" width="56" height="56" rx="9" fill="#a78bfa"/>
+    <rect x="132" y="132" width="56" height="56" rx="9" fill="#7c3aed"/>
+  </g>
+  <text x="130" y="244" fill="#4c1d95" font-family="Arial, sans-serif" font-size="32" font-weight="700" text-anchor="middle">PIXEL FORGE</text>
+</svg>

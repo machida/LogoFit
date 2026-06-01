@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 590 150" width="590" height="150">
+  <g transform="translate(14 10)">
+    <path d="M62 0c28 31 43 56 43 79a43 43 0 1 1-86 0c0-20 12-41 36-64-2 22 6 36 20 44 7-18 3-38-13-59Z" fill="#ea580c"/>
+    <path d="M62 67c13 14 18 24 18 34a18 18 0 1 1-36 0c0-9 6-20 18-34Z" fill="#fed7aa"/>
+  </g>
+  <text x="145" y="88" fill="#7c2d12" font-family="Georgia, serif" font-size="58" font-weight="700">Ember</text>
+  <text x="340" y="88" fill="#c2410c" font-family="Arial, sans-serif" font-size="34" font-weight="700">KITCHEN</text>
+</svg>

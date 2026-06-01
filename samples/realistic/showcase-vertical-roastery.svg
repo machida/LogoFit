@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 520" width="180" height="520">
+  <circle cx="90" cy="82" r="64" fill="#7c2d12"/>
+  <path d="M90 35c32 18 35 62 0 94-35-32-32-76 0-94Z" fill="#fed7aa"/>
+  <path d="M90 49c-10 24-10 44 0 63 10-19 10-39 0-63Z" fill="#7c2d12"/>
+  <text x="90" y="207" fill="#7c2d12" font-family="Georgia, serif" font-size="42" font-weight="700" text-anchor="middle">RISE</text>
+  <text x="90" y="259" fill="#9a3412" font-family="Georgia, serif" font-size="42" font-weight="700" text-anchor="middle">ROAST</text>
+  <path d="M45 292h90" stroke="#fdba74" stroke-width="5"/>
+  <text x="90" y="343" fill="#7c2d12" font-family="Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="6" text-anchor="middle">SMALL</text>
+  <text x="90" y="375" fill="#7c2d12" font-family="Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="6" text-anchor="middle">BATCH</text>
+  <text x="90" y="448" fill="#9a3412" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="4" text-anchor="middle">ROASTERY</text>
+  <text x="90" y="482" fill="#64748b" font-family="Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="3" text-anchor="middle">SINCE 2014</text>
+</svg>

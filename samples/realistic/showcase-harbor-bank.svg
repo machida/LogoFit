@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 285" width="300" height="285">
+  <circle cx="150" cy="105" r="88" fill="#0f766e"/>
+  <path d="M77 105h146M89 76h122M89 134h122" stroke="#ccfbf1" stroke-width="12" stroke-linecap="round"/>
+  <path d="M150 47v116" stroke="#ccfbf1" stroke-width="12" stroke-linecap="round"/>
+  <path d="m113 67 37-25 37 25M113 143l37 25 37-25" fill="none" stroke="#ccfbf1" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="150" y="231" fill="#134e4a" font-family="Arial, sans-serif" font-size="37" font-weight="700" text-anchor="middle">HARBOR</text>
+  <text x="150" y="260" fill="#0f766e" font-family="Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="9" text-anchor="middle">BANK</text>
+</svg>

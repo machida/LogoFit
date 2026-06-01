@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 128" width="560" height="128">
+  <g transform="translate(10 14)">
+    <path d="M50 0 96 26v48L50 100 4 74V26Z" fill="#0f766e"/>
+    <path d="m50 20 25 56H63l-5-13H42l-5 13H25Zm0 20-5 13h10Z" fill="#fff"/>
+  </g>
+  <text x="130" y="69" fill="#123c3b" font-family="Arial, sans-serif" font-size="48" font-weight="700">Aurora</text>
+  <text x="328" y="69" fill="#0f766e" font-family="Arial, sans-serif" font-size="48" font-weight="400">Labs</text>
+  <text x="133" y="94" fill="#64748b" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="4">DATA SYSTEMS</text>
+</svg>

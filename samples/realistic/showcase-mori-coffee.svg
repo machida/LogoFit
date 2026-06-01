@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 300" width="260" height="300">
+  <circle cx="130" cy="95" r="82" fill="#f5f1e8"/>
+  <path d="M130 38c42 24 50 74 0 116-50-42-42-92 0-116Z" fill="#166534"/>
+  <path d="M130 56c-15 30-15 56 0 80 15-24 15-50 0-80Z" fill="#f5f1e8"/>
+  <path d="M130 57v81" stroke="#166534" stroke-width="5"/>
+  <text x="130" y="220" fill="#14532d" font-family="Georgia, serif" font-size="54" font-weight="700" text-anchor="middle">MORI</text>
+  <text x="130" y="255" fill="#6b7280" font-family="Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="8" text-anchor="middle">COFFEE</text>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 170" width="470" height="170">
+  <g transform="translate(14 20)">
+    <path d="M10 18c30-24 69-24 99 0l-15 19c-21-16-48-16-69 0Z" fill="#0284c7"/>
+    <path d="M25 53c21-17 48-17 69 0L79 72c-12-9-27-9-39 0Z" fill="#0ea5e9"/>
+    <path d="M40 87c12-9 27-9 39 0l-19 25Z" fill="#38bdf8"/>
+  </g>
+  <text x="154" y="80" fill="#0c4a6e" font-family="Arial, sans-serif" font-size="44" font-weight="700">CASCADE</text>
+  <text x="157" y="111" fill="#64748b" font-family="Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="8">STUDIO</text>
+</svg>

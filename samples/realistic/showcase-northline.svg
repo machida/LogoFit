@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 92" width="720" height="92">
+  <path d="M16 68 47 17l31 51H63L47 42 31 68Z" fill="#e11d48"/>
+  <path d="M47 17 78 68H63L47 42Z" fill="#9f1239"/>
+  <text x="104" y="67" fill="#1f2937" font-family="Arial, sans-serif" font-size="56" font-weight="700" letter-spacing="2">NORTHLINE</text>
+  <rect x="105" y="76" width="543" height="4" fill="#e11d48"/>
+</svg>

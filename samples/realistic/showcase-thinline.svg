@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 82" width="960" height="82">
+  <path d="M18 41h58" stroke="#4338ca" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="47" cy="41" r="20" fill="none" stroke="#4338ca" stroke-width="8"/>
+  <text x="102" y="59" fill="#312e81" font-family="Arial, sans-serif" font-size="54" font-weight="700" letter-spacing="9">LUMEN WORKS</text>
+  <path d="M855 41h87" stroke="#a5b4fc" stroke-width="8" stroke-linecap="round"/>
+</svg>

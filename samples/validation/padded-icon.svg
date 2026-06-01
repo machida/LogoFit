@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+  <!-- 実ロゴは中央の小さな図形のみ。周囲は大きな透明余白（トリム動作の確認用） -->
+  <rect x="420" y="420" width="160" height="160" rx="24" fill="#8b5cf6"/>
+  <circle cx="500" cy="500" r="40" fill="#fff"/>
+</svg>
