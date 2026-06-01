@@ -115,6 +115,30 @@ npm run preview  # ビルド成果物のプレビュー
 
 ---
 
+## デプロイ
+
+完全クライアントサイド動作のため、バックエンドは不要。`npm run build` で生成される `dist/` を静的ホスティングへ置くだけで運用でき、サーバ費用はかかりません（画像処理は利用者のブラウザ内で完結）。
+
+本番は **Cloudflare Pages** + GitHub 自動デプロイで運用しています。
+
+- リポジトリ: <https://github.com/machida/LogoFit>
+- `main` ブランチへ push すると Cloudflare Pages が自動でビルド・公開します。
+
+### Cloudflare Pages の設定
+
+| 項目 | 値 |
+| --- | --- |
+| Framework preset | Vite |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Production branch | `main` |
+
+- ルーティング（react-router 等）を使わない単一ページのため、`_redirects` や Vite の `base` 設定は不要です。
+- ビルドが Node のバージョン差異で失敗する場合は、Pages の環境変数に `NODE_VERSION=22` を設定します。
+- 独自ドメインは Pages プロジェクトの **Custom domains** から追加できます（SSL は自動・無料）。
+
+---
+
 ## プロジェクト構成
 
 ```
