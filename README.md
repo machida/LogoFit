@@ -1,5 +1,7 @@
 # LogoFit
 
+公開URL: <https://logofit.pages.dev/>
+
 形がバラバラな企業ロゴ（SVG / PNG）を、**見た目の大きさ（塗り面積）を揃えて**指定サイズの枠に配置し、複数サイズの PNG を一括書き出しするブラウザツール。
 
 イベントのスポンサー一覧ページ、スポンサーボード、パートナー/導入企業一覧などの素材づくりを想定。例: [RubyKaigi のスポンサーページ](https://rubykaigi.org/2026/sponsors/)。
@@ -121,6 +123,7 @@ npm run preview  # ビルド成果物のプレビュー
 
 本番は **Cloudflare Pages** + GitHub 自動デプロイで運用しています。
 
+- 公開URL: <https://logofit.pages.dev/>
 - リポジトリ: <https://github.com/machida/LogoFit>
 - `main` ブランチへ push すると Cloudflare Pages が自動でビルド・公開します。
 
