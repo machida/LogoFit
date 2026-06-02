@@ -92,7 +92,7 @@ export function SettingsPreview({ settings, previewPreset }: Props) {
   return (
     <div className="panel">
       <div className="panel__head">
-        <h2>設定プレビュー</h2>
+        <h3>設定プレビュー</h3>
       </div>
       <div className="panel__body">
         <div className="frame-wrap">

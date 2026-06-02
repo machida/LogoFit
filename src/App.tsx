@@ -19,6 +19,7 @@ export default function App() {
   const [previewPresetId, setPreviewPresetId] = useState<string>(DEFAULT_PRESETS[0].id);
   const [viewMode, setViewMode] = useState<'cards' | 'board'>('cards');
   const [previewWhiteBackground, setPreviewWhiteBackground] = useState(false);
+  const [settingsExpanded, setSettingsExpanded] = useState(true);
   const [hydrated, setHydrated] = useState(false);
   const [analyzing, setAnalyzing] = useState<{ done: number; total: number } | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -225,28 +226,46 @@ export default function App() {
           )}
         </section>
 
-        <section className="section">
-          <h2 className="section__title">設定</h2>
-          <div className="controls">
-            <PresetTable
-              presets={presets}
-              settings={settings}
-              onChange={(next) => {
-                resumeDraftSaving();
-                setPresets(next);
-              }}
-              disabled={generating}
-            />
-            <SettingsPanel
-              settings={settings}
-              onChange={(next) => {
-                resumeDraftSaving();
-                setSettings(next);
-              }}
-              disabled={generating}
-            />
-            <SettingsPreview settings={settings} previewPreset={previewPreset} />
+        <section className="section" id="settings">
+          <div className="section__title-row">
+            <h2 className="section__title">設定</h2>
+            <button
+              className="btn btn--ghost btn--sm"
+              type="button"
+              aria-expanded={settingsExpanded}
+              aria-controls="settings-controls"
+              onClick={() => setSettingsExpanded((expanded) => !expanded)}
+            >
+              {settingsExpanded ? '設定を閉じる' : '設定を開く'}
+            </button>
           </div>
+          {settingsExpanded && (
+            <div className="controls" id="settings-controls">
+              <PresetTable
+                presets={presets}
+                settings={settings}
+                onChange={(next) => {
+                  resumeDraftSaving();
+                  setPresets(next);
+                  // プレビュー対象が削除されたら有効な ID へ寄せる。
+                  // 無効な previewPresetId を保存すると次回起動時に下書き検証で弾かれる。
+                  if (next.length > 0 && !next.some((p) => p.id === previewPresetId)) {
+                    setPreviewPresetId(next[0].id);
+                  }
+                }}
+                disabled={generating}
+              />
+              <SettingsPanel
+                settings={settings}
+                onChange={(next) => {
+                  resumeDraftSaving();
+                  setSettings(next);
+                }}
+                disabled={generating}
+              />
+              <SettingsPreview settings={settings} previewPreset={previewPreset} />
+            </div>
+          )}
         </section>
 
         <main className="section app__main">
@@ -257,6 +276,9 @@ export default function App() {
               {items.length > readyCount && (
                 <span className="muted"> / {items.length - readyCount} 件エラー</span>
               )}
+              <a className="settings-link" href="#settings" onClick={() => setSettingsExpanded(true)}>
+                設定へ戻る
+              </a>
             </div>
             <div className="main__bar-right">
               <div className="seg">
@@ -306,10 +328,13 @@ export default function App() {
                     setPreviewWhiteBackground(e.target.checked);
                   }}
                 />
-                白背景で確認
+                <span>
+                  白背景で確認
+                  <small>プレビューのみ</small>
+                </span>
               </label>
               {items.length > 0 && (
-                <button className="btn btn--ghost" onClick={clearAll} disabled={generating}>
+                <button className="btn btn--ghost btn--danger main__clear" onClick={clearAll} disabled={generating}>
                   全消去
                 </button>
               )}

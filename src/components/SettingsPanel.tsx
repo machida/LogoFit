@@ -61,7 +61,7 @@ export function SettingsPanel({ settings, onChange, disabled = false }: Props) {
   return (
     <div className="panel">
       <div className="panel__head">
-        <h2>補正設定</h2>
+        <h3>補正設定</h3>
       </div>
       <PercentSlider
         label="目標ロゴ面積率"

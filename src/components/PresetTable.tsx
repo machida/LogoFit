@@ -70,6 +70,7 @@ function DimensionInput({
 }
 
 export function PresetTable({ presets, settings, onChange, disabled = false }: Props) {
+  const [showDerived, setShowDerived] = useState(false);
   const update = (id: string, patch: Partial<OutputPreset>) => {
     onChange(presets.map((p) => (p.id === id ? normalizePreset({ ...p, ...patch }) : p)));
   };
@@ -79,10 +80,18 @@ export function PresetTable({ presets, settings, onChange, disabled = false }: P
   return (
     <div className="panel">
       <div className="panel__head">
-        <h2>出力プリセット</h2>
+        <h3>出力プリセット</h3>
+        <button
+          className="btn btn--ghost btn--sm"
+          type="button"
+          aria-expanded={showDerived}
+          onClick={() => setShowDerived((v) => !v)}
+        >
+          {showDerived ? 'px換算を隠す' : 'px換算を表示'}
+        </button>
       </div>
       <div className="preset-table-wrap">
-        <table className="preset-table">
+        <table className={`preset-table${showDerived ? '' : ' preset-table--flat'}`}>
           <tbody>
           {presets.map((p) => {
             const px = derivePx(p, settings);
@@ -102,13 +111,16 @@ export function PresetTable({ presets, settings, onChange, disabled = false }: P
                   </td>
                   <td>
                     <label className="preset-field">
-                      <span>幅 (px)</span>
-                      <DimensionInput
-                        key={`width-${p.width}`}
-                        value={p.width}
-                        disabled={disabled}
-                        onCommit={(width) => update(p.id, { width })}
-                      />
+                      <span>幅</span>
+                      <span className="dim-input">
+                        <DimensionInput
+                          key={`width-${p.width}`}
+                          value={p.width}
+                          disabled={disabled}
+                          onCommit={(width) => update(p.id, { width })}
+                        />
+                        <span className="unit">px</span>
+                      </span>
                     </label>
                   </td>
                   <td className="preset-table__times" aria-hidden="true">
@@ -116,13 +128,16 @@ export function PresetTable({ presets, settings, onChange, disabled = false }: P
                   </td>
                   <td>
                     <label className="preset-field">
-                      <span>高さ (px)</span>
-                      <DimensionInput
-                        key={`height-${p.height}`}
-                        value={p.height}
-                        disabled={disabled}
-                        onCommit={(height) => update(p.id, { height })}
-                      />
+                      <span>高さ</span>
+                      <span className="dim-input">
+                        <DimensionInput
+                          key={`height-${p.height}`}
+                          value={p.height}
+                          disabled={disabled}
+                          onCommit={(height) => update(p.id, { height })}
+                        />
+                        <span className="unit">px</span>
+                      </span>
                     </label>
                   </td>
                   <td className="preset-table__action">
@@ -136,12 +151,30 @@ export function PresetTable({ presets, settings, onChange, disabled = false }: P
                     </button>
                   </td>
                 </tr>
-                <tr className="preset-derived">
-                  <td colSpan={5}>
-                    余白 {px.margin} ・ 最大 {px.maxBox} ・ 目標 {px.target}px四方 ・ 最小{' '}
-                    {px.min}px四方
-                  </td>
-                </tr>
+                {showDerived && (
+                  <tr className="preset-derived">
+                    <td colSpan={5}>
+                      <dl className="derived">
+                        <div>
+                          <dt>余白</dt>
+                          <dd>{px.margin}</dd>
+                        </div>
+                        <div>
+                          <dt>最大枠</dt>
+                          <dd>{px.maxBox}</dd>
+                        </div>
+                        <div>
+                          <dt>目標</dt>
+                          <dd>{px.target}px四方</dd>
+                        </div>
+                        <div>
+                          <dt>最小</dt>
+                          <dd>{px.min}px四方</dd>
+                        </div>
+                      </dl>
+                    </td>
+                  </tr>
+                )}
               </Fragment>
             );
           })}

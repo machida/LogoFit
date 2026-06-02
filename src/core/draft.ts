@@ -105,7 +105,15 @@ export async function loadDraft(): Promise<Draft | null> {
     return await new Promise((resolve, reject) => {
       const request = db.transaction(STORE_NAME).objectStore(STORE_NAME).get(DRAFT_KEY);
       request.onerror = () => reject(request.error);
-      request.onsuccess = () => resolve(request.result == null ? null : validateDraft(request.result));
+      request.onsuccess = () => {
+        // validateDraft の例外をハンドラ内で握りつぶすと Promise が pending のまま固まり、
+        // 呼び出し側の hydration が止まる。必ず resolve / reject のどちらかへ落とす。
+        try {
+          resolve(request.result == null ? null : validateDraft(request.result));
+        } catch (err) {
+          reject(err);
+        }
+      };
     });
   } finally {
     db.close();
