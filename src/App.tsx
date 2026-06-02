@@ -333,20 +333,20 @@ export default function App() {
                   <small>プレビューのみ</small>
                 </span>
               </label>
-              {items.length > 0 && (
-                <button className="btn btn--ghost btn--danger main__clear" onClick={clearAll} disabled={generating}>
-                  全消去
-                </button>
-              )}
-              {items.length > 0 && (
-                <button className="btn btn--primary" onClick={handleGenerate} disabled={!canGenerate}>
-                  {generating
-                    ? progress
-                      ? `生成中 ${progress.done}/${progress.total}`
-                      : '生成中…'
-                    : `ZIP生成（${readyCount * presets.length} 枚）`}
-                </button>
-              )}
+              <button
+                className="btn btn--ghost btn--danger main__clear"
+                onClick={clearAll}
+                disabled={generating || items.length === 0}
+              >
+                全消去
+              </button>
+              <button className="btn btn--primary" onClick={handleGenerate} disabled={!canGenerate}>
+                {generating
+                  ? progress
+                    ? `生成中 ${progress.done}/${progress.total}`
+                    : '生成中…'
+                  : `ZIP生成（${readyCount * presets.length} 枚）`}
+              </button>
             </div>
           </div>
 

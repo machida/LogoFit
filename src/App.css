@@ -337,6 +337,10 @@
   color: var(--text-dim);
   margin-top: 3px;
 }
+.field__hint--locked {
+  color: #fbbf24;
+  font-weight: 600;
+}
 .margin-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -371,6 +375,11 @@ input[type='range'] {
   width: 100%;
   height: 22px;
   accent-color: var(--accent);
+}
+input[type='range']:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  accent-color: var(--text-dim);
 }
 
 .seg {
@@ -496,6 +505,7 @@ a:focus-visible {
   gap: 6px;
   color: var(--text-dim);
   font-size: 13px;
+  cursor: pointer;
 }
 .preview-white span {
   display: inline-flex;
@@ -508,6 +518,7 @@ a:focus-visible {
 }
 .preview-white input {
   margin: 0;
+  cursor: pointer;
 }
 .preview-select select {
   background: var(--bg-elev);
@@ -642,21 +653,28 @@ a:focus-visible {
 .logo-card__name-input {
   min-width: 0;
   flex: 1;
-  border: 1px solid transparent;
+  /* 常に「編集できる入力欄」と分かる見た目（枠 + 沈んだ背景 + 末尾の鉛筆アイコン） */
+  border: 1px solid var(--border);
   border-radius: var(--radius-xs);
-  background: transparent;
+  background-color: var(--bg-input);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
   color: var(--text);
-  padding: 4px 7px;
+  padding: 6px 30px 6px 9px;
   font-size: 15px;
   font-weight: 700;
+  transition: border-color 0.15s;
 }
 .logo-card__name-input:hover {
-  border-color: var(--border);
-  background: var(--bg-input);
+  border-color: var(--accent-soft);
 }
 .logo-card__name-input:focus {
   border-color: var(--accent-soft);
-  background: var(--bg-input);
+}
+.logo-card__name-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 .logo-card__extension {
   color: var(--text-dim);
@@ -845,7 +863,16 @@ a:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-top: 8px;
+}
+/* 押せる状態（＝このロゴが個別指定中）のとき、上書き表示の琥珀色と揃えて薄く色づけ */
+.logo-card__reset:not(:disabled) {
+  background: rgba(251, 191, 36, 0.12);
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+}
+.logo-card__reset:not(:disabled):hover {
+  background: rgba(251, 191, 36, 0.2);
+  border-color: #fbbf24;
 }
 
 @media (max-width: 560px) {

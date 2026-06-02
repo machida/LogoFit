@@ -105,7 +105,7 @@ function drawFrame(
 const STATUS_VIEW: Record<string, { label: string; cls: string }> = {
   ok: { label: '', cls: '' },
   raisedToMin: { label: '（最小）', cls: ' ratio--min' },
-  cappedByMargin: { label: '（余白上限）', cls: ' ratio--margin' },
+  cappedByMargin: { label: '（上限）', cls: ' ratio--margin' },
 };
 
 export function LogoPreview({
@@ -152,6 +152,8 @@ export function LogoPreview({
     return Math.max(minPct, Math.floor(ratio * 100));
   })();
   const sliderValue = Math.min(Math.round(effectiveRatio * 100), maxPctReachable);
+  // 余白上限まで広げても最小面積どまり → 調整幅ゼロ。スライダーは動かせない。
+  const adjustable = maxPctReachable > minPct;
 
   if (item.status === 'error') {
     return (
@@ -182,6 +184,7 @@ export function LogoPreview({
           disabled={disabled}
           onChange={(e) => onBaseNameChange(e.target.value)}
           aria-label="ファイル名（拡張子を除く）"
+          title="クリックして書き出しファイル名を編集"
         />
         <span className="logo-card__extension">.{item.kind}</span>
         <span className={`badge badge--${item.kind}`}>{item.kind.toUpperCase()}</span>
@@ -244,18 +247,23 @@ export function LogoPreview({
             min={minPct}
             max={maxPctReachable}
             value={sliderValue}
-            disabled={disabled}
+            disabled={disabled || !adjustable}
             onChange={(e) => onAreaChange(Number(e.target.value) / 100)}
+            title={adjustable ? undefined : '余白上限まで広げても最小面積どまりのため調整できません'}
           />
           <div className="scale-foot">
-            <span className="field__hint">塗り面積で指定（余白の内側基準）</span>
+            <span className={`field__hint${adjustable ? '' : ' field__hint--locked'}`}>
+              {adjustable
+                ? '塗り面積で指定（余白の内側基準）'
+                : '余白上限のため調整できません'}
+            </span>
             <button
-              className="btn btn--ghost btn--sm"
+              className="btn btn--ghost btn--sm logo-card__reset"
               onClick={() => onAreaChange(null)}
               disabled={disabled || !isOverridden}
-              title="全体の目標面積率に追従させる"
+              title="このロゴの個別指定をやめ、全体の目標ロゴ面積率に追従させる"
             >
-              全体に戻す
+              個別指定を解除
             </button>
           </div>
         </div>
