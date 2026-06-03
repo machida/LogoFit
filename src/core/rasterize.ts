@@ -71,7 +71,8 @@ async function rasterizeSvg(text: string): Promise<HTMLCanvasElement> {
     const canvas = document.createElement('canvas');
     canvas.width = rw;
     canvas.height = rh;
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('ラスタライズ用Canvasを作成できませんでした');
     ctx.drawImage(img, 0, 0, rw, rh);
     return canvas;
   } finally {
@@ -80,8 +81,9 @@ async function rasterizeSvg(text: string): Promise<HTMLCanvasElement> {
 }
 
 async function rasterizePng(file: File): Promise<HTMLCanvasElement> {
-  // デコード前に IHDR で寸法を確認し、巨大画像は Image へ渡さず弾く
-  const size = readPngSize(await file.arrayBuffer());
+  // デコード前に IHDR で寸法を確認し、巨大画像は Image へ渡さず弾く。
+  // 必要なのは先頭 24 バイト（署名 + IHDR の幅・高さ）だけなので全体は読まない。
+  const size = readPngSize(await file.slice(0, 24).arrayBuffer());
   if (size) assertWithinSourceLimits(size.width, size.height);
 
   const url = URL.createObjectURL(file);
@@ -98,7 +100,8 @@ async function rasterizePng(file: File): Promise<HTMLCanvasElement> {
     const canvas = document.createElement('canvas');
     canvas.width = w;
     canvas.height = h;
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('ラスタライズ用Canvasを作成できませんでした');
     ctx.drawImage(img, 0, 0, w, h);
     return canvas;
   } finally {
