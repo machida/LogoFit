@@ -11,7 +11,7 @@ const PNG_MAX = 4096;
  * 解凍爆弾（小さい圧縮ファイルでも巨大寸法）を Image へ渡す前に弾くため。
  * PNG でない・壊れている場合は null を返す（呼び出し側で通常処理にフォールバック）。
  */
-function readPngSize(buffer: ArrayBuffer): { width: number; height: number } | null {
+export function readPngSize(buffer: ArrayBuffer): { width: number; height: number } | null {
   if (buffer.byteLength < 24) return null;
   const view = new DataView(buffer);
   // PNG シグネチャ 89 50 4E 47 0D 0A 1A 0A

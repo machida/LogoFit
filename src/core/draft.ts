@@ -1,5 +1,6 @@
 import type { GlobalSettings, LogoItem, OutputPreset } from './types';
 import { isValidPreset } from './preset';
+import { MAX_FILES, MAX_FILE_BYTES, MAX_PRESETS } from './limits';
 import { createCoalescingQueue } from './writeQueue';
 
 const DB_NAME = 'logofit';
@@ -54,7 +55,9 @@ function isDraftItem(value: unknown): value is DraftItem {
     typeof value.fileName === 'string' &&
     typeof value.baseName === 'string' &&
     (value.areaOverride == null || isRatio(value.areaOverride)) &&
-    value.originalFile instanceof File
+    value.originalFile instanceof File &&
+    // 復旧時もリソース上限を必ず適用する（古い/壊れた下書きで巨大ファイルを処理させない）
+    value.originalFile.size <= MAX_FILE_BYTES
   );
 }
 
@@ -66,8 +69,10 @@ export function validateDraft(value: unknown): Draft {
     !isSettings(value.settings) ||
     !Array.isArray(value.presets) ||
     value.presets.length === 0 ||
+    value.presets.length > MAX_PRESETS ||
     !value.presets.every((preset) => isRecord(preset) && isValidPreset(preset as unknown as OutputPreset)) ||
     !Array.isArray(value.items) ||
+    value.items.length > MAX_FILES ||
     !value.items.every(isDraftItem) ||
     typeof value.previewPresetId !== 'string' ||
     !value.presets.some((preset) => preset.id === value.previewPresetId) ||

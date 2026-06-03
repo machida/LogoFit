@@ -22,7 +22,7 @@ describe('sanitizeSvg', () => {
     expect(result.svg).toContain('stroke="url(#safe)"');
   });
 
-  it('drops data:image/svg+xml hrefs (nested SVG) but keeps raster data URLs', () => {
+  it('drops all data: URL hrefs (nested SVG and raster alike)', () => {
     const result = sanitizeSvg(`
       <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
         <image id="nested" href="data:image/svg+xml;base64,PHN2Zy8+"/>
@@ -30,7 +30,6 @@ describe('sanitizeSvg', () => {
       </svg>
     `);
 
-    expect(result.svg).not.toContain('image/svg+xml');
-    expect(result.svg).toContain('data:image/png;base64');
+    expect(result.svg).not.toContain('data:');
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_TOTAL_OUTPUTS, mapLimit, outputTotals } from './limits';
+import { MAX_TOTAL_OUTPUTS, MAX_TOTAL_OUTPUT_PIXELS, mapLimit, outputTotals } from './limits';
 import type { OutputPreset } from './types';
 
 const preset = (width: number, height: number): OutputPreset => ({ id: 'p', prefix: '', width, height });
@@ -59,6 +59,15 @@ describe('outputTotals', () => {
 
   it('flags exceed when count is over the limit', () => {
     const t = outputTotals(MAX_TOTAL_OUTPUTS + 1, [preset(1, 1)]);
+    expect(t.exceeds).toBe(true);
+  });
+
+  it('flags exceed when estimated pixels are over the limit (count under limit)', () => {
+    const big = preset(4096, 4096); // 約 16.8M px
+    const readyCount = Math.ceil(MAX_TOTAL_OUTPUT_PIXELS / (4096 * 4096)) + 1;
+    const t = outputTotals(readyCount, [big]);
+    expect(t.count).toBeLessThanOrEqual(MAX_TOTAL_OUTPUTS);
+    expect(t.pixels).toBeGreaterThan(MAX_TOTAL_OUTPUT_PIXELS);
     expect(t.exceeds).toBe(true);
   });
 });

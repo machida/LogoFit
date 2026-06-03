@@ -7,18 +7,15 @@ export interface SanitizedSvg {
 }
 
 const REMOVE_TAGS = new Set(['script', 'style', 'foreignobject', 'iframe', 'audio', 'video']);
-// data:image/svg+xml（入れ子 SVG）は再サニタイズされないため許可しない。
-// 内部参照(#...) と「ラスタ画像」の data URL のみ許可する。
-const SAFE_RASTER_DATA = /^data:image\/(png|jpe?g|gif|webp|bmp|avif)[;,]/i;
 const URL_REFERENCE = /url\(\s*(['"]?)(.*?)\1\s*\)/gi;
 
 function isExternalHref(value: string): boolean {
   const v = value.trim();
   if (v === '') return false;
-  if (v.startsWith('#')) return false;
-  if (SAFE_RASTER_DATA.test(v)) return false;
-  // それ以外(http, javascript, file, 相対URL, data:image/svg+xml, data:text/* など)は除去
-  return true;
+  // 内部参照(#...) のみ許可。data: URL も含めそれ以外は全て除去する。
+  // 埋め込みラスタ画像(data:image/*)は寸法プリフライト（IHDR チェック）をすり抜けるため、
+  // 初期リリースでは安全側に倒して許可しない。
+  return !v.startsWith('#');
 }
 
 function hasUnsafeUrlReference(value: string): boolean {

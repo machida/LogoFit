@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
 import { canvasToPngBlob, composeToCanvas, outputFileName } from './compose';
+import { MAX_TOTAL_OUTPUTS, outputTotals } from './limits';
 import type { GlobalSettings, LogoItem, OutputPreset } from './types';
 
 export interface GenerateProgress {
@@ -18,6 +19,10 @@ export async function generateZip(
   onProgress?: (p: GenerateProgress) => void,
 ): Promise<Blob> {
   const ready = items.filter((it) => it.status === 'ready' && it.source && it.analysis);
+  // UI 判定とは独立に core 側でも総量上限を防御する（別経路から呼ばれても安全に）
+  if (outputTotals(ready.length, presets).exceeds) {
+    throw new Error(`総出力が上限（${MAX_TOTAL_OUTPUTS}枚 / 推定ピクセル）を超えています`);
+  }
   const zip = new JSZip();
   const used = new Set<string>();
   const total = ready.length * presets.length;

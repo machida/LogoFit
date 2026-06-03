@@ -283,8 +283,13 @@ export default function App() {
           {analyzing && (
             <p className="analysis-progress" aria-live="polite">
               {analyzing.total}件を解析中 {analyzing.done}/{analyzing.total}
-              <button type="button" className="btn btn--ghost btn--sm analysis-cancel" onClick={cancelAnalysis}>
-                中止
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm analysis-cancel"
+                onClick={cancelAnalysis}
+                title="実行中の数件は完了します。以降の解析を止めます"
+              >
+                残りを中止
               </button>
             </p>
           )}
