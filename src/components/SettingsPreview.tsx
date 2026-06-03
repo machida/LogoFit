@@ -28,7 +28,8 @@ function draw(canvas: HTMLCanvasElement, settings: GlobalSettings, preset: Outpu
   const { w, h } = backingSize(preset);
   canvas.width = w;
   canvas.height = h;
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
   ctx.clearRect(0, 0, w, h);
 
   if (settings.background === 'white') {

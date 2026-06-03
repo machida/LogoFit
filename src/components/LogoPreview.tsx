@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { composeToCanvas } from '../core/compose';
 import { computePlacement } from '../core/fit';
+import type { FitStatus } from '../core/fit';
 import { hasMargin, innerBox } from '../core/margin';
 import type { GlobalSettings, LogoItem, OutputPreset } from '../core/types';
 
@@ -36,7 +37,8 @@ function drawOriginal(canvas: HTMLCanvasElement, item: LogoItem) {
   const scale = Math.min(1, THUMB_BACKING_MAX / Math.max(trim.width, trim.height));
   canvas.width = Math.max(1, Math.round(trim.width * scale));
   canvas.height = Math.max(1, Math.round(trim.height * scale));
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(
@@ -68,7 +70,8 @@ function drawFrame(
   const { w, h } = backingSize(preset);
   canvas.width = w;
   canvas.height = h;
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
   ctx.clearRect(0, 0, w, h);
   const previewSettings = previewWhiteBackground ? { ...settings, background: 'white' as const } : settings;
   const composed = composeToCanvas(item, preset, previewSettings);
@@ -102,7 +105,7 @@ function drawFrame(
   }
 }
 
-const STATUS_VIEW: Record<string, { label: string; cls: string }> = {
+const STATUS_VIEW: Record<FitStatus, { label: string; cls: string }> = {
   ok: { label: '', cls: '' },
   raisedToMin: { label: '（最小）', cls: ' ratio--min' },
   cappedByMargin: { label: '（上限）', cls: ' ratio--margin' },
@@ -194,6 +197,11 @@ export function LogoPreview({
       </header>
 
       <div className="logo-card__body">
+        {item.warning && (
+          <p className="logo-card__warn" role="status">
+            ⚠ {item.warning}
+          </p>
+        )}
         <div className="preview">
           <figure className="preview__orig">
             <canvas ref={origRef} className="thumb-canvas checker-bg" />

@@ -33,7 +33,10 @@ export async function loadLogo(file: File): Promise<LogoItem> {
     if (analysis.inkArea <= 0) {
       return { ...base, kind, status: 'error', error: '描画内容が検出できませんでした（透明のみ）' };
     }
-    return { ...base, kind, source: canvas, analysis, status: 'ready' };
+    const warning = analysis.opaque
+      ? '透明部分が無いため、背景込みで画像全体がロゴ扱いになります。透明背景のPNG/SVGを推奨します。'
+      : undefined;
+    return { ...base, kind, source: canvas, analysis, status: 'ready', warning };
   } catch (err) {
     return { ...base, status: 'error', error: err instanceof Error ? err.message : '読み込みに失敗しました' };
   }

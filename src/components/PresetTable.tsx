@@ -1,4 +1,5 @@
 import { Fragment, useState } from 'react';
+import { MAX_PRESETS } from '../core/limits';
 import { innerBox } from '../core/margin';
 import { MAX_OUTPUT_SIDE, normalizeDimension, normalizePreset } from '../core/preset';
 import type { GlobalSettings, OutputPreset } from '../core/types';
@@ -75,7 +76,11 @@ export function PresetTable({ presets, settings, onChange, disabled = false }: P
     onChange(presets.map((p) => (p.id === id ? normalizePreset({ ...p, ...patch }) : p)));
   };
   const remove = (id: string) => onChange(presets.filter((p) => p.id !== id));
-  const add = () => onChange([...presets, newPreset()]);
+  const add = () => {
+    if (presets.length >= MAX_PRESETS) return;
+    onChange([...presets, newPreset()]);
+  };
+  const atPresetLimit = presets.length >= MAX_PRESETS;
 
   return (
     <div className="panel">
@@ -182,7 +187,12 @@ export function PresetTable({ presets, settings, onChange, disabled = false }: P
         </table>
       </div>
       <div className="panel__foot">
-        <button className="btn btn--sm" onClick={add} disabled={disabled}>
+        <button
+          className="btn btn--sm"
+          onClick={add}
+          disabled={disabled || atPresetLimit}
+          title={atPresetLimit ? `プリセットは最大${MAX_PRESETS}個までです` : undefined}
+        >
           + プリセットを追加
         </button>
       </div>

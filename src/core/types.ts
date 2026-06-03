@@ -43,6 +43,8 @@ export interface LogoAnalysis {
   trim: TrimBox;
   /** トリム領域内の alpha 加重インク面積（px 相当） */
   inkArea: number;
+  /** 透明ピクセルが無く全面不透明とみなせる（＝背景付き画像の可能性） */
+  opaque: boolean;
 }
 
 export type LogoStatus = 'loading' | 'ready' | 'error';
@@ -62,6 +64,8 @@ export interface LogoItem {
   areaOverride: number | null;
   status: LogoStatus;
   error?: string;
+  /** 致命的でない注意喚起（例: 不透明背景の可能性）。表示のみで書き出しは可能 */
+  warning?: string;
 }
 
 export const DEFAULT_SETTINGS: GlobalSettings = {

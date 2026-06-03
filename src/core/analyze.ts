@@ -10,7 +10,8 @@ const ALPHA_THRESHOLD = 10;
  */
 export function analyze(canvas: HTMLCanvasElement): LogoAnalysis {
   const { width, height } = canvas;
-  const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) throw new Error('解析用Canvasを取得できませんでした');
   const { data } = ctx.getImageData(0, 0, width, height);
 
   let minX = width;
@@ -18,11 +19,15 @@ export function analyze(canvas: HTMLCanvasElement): LogoAnalysis {
   let maxX = -1;
   let maxY = -1;
   let inkArea = 0;
+  let transparentCount = 0;
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      const alpha = data[(y * width + x) * 4 + 3];
-      if (alpha <= ALPHA_THRESHOLD) continue;
+      const alpha = data[(y * width + x) * 4 + 3]!;
+      if (alpha <= ALPHA_THRESHOLD) {
+        transparentCount++;
+        continue;
+      }
       inkArea += alpha / 255;
       if (x < minX) minX = x;
       if (x > maxX) maxX = x;
@@ -31,6 +36,9 @@ export function analyze(canvas: HTMLCanvasElement): LogoAnalysis {
     }
   }
 
+  // 透明ピクセルが無い ＝ 透明余白を検出できず、画像全体がロゴ扱いになる（背景付きの可能性）
+  const opaque = transparentCount === 0 && width * height > 0;
+
   // 完全に透明（インクが無い）場合
   if (maxX < 0) {
     return {
@@ -38,6 +46,7 @@ export function analyze(canvas: HTMLCanvasElement): LogoAnalysis {
       sourceHeight: height,
       trim: { x: 0, y: 0, width, height },
       inkArea: 0,
+      opaque: false,
     };
   }
 
@@ -51,5 +60,6 @@ export function analyze(canvas: HTMLCanvasElement): LogoAnalysis {
       height: maxY - minY + 1,
     },
     inkArea,
+    opaque,
   };
 }

@@ -10,6 +10,7 @@ describe('computePlacement', () => {
         sourceHeight: 100,
         trim: { x: 0, y: 0, width: 100, height: 100 },
         inkArea: 10000,
+        opaque: false,
       },
       { id: 'p', prefix: '', width: 600, height: 600 },
       DEFAULT_SETTINGS,

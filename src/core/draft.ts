@@ -142,6 +142,56 @@ export async function clearDraft(): Promise<void> {
   }
 }
 
+// ---- 書き込みの直列化 ----
+// 保存・削除を単一キューで順番に実行し、常に「最新の要求」だけを書き込む。
+// 直接 saveDraft/clearDraft を並行で呼ぶと、重い書き込みが後勝ちして古い状態が残り得る。
+type DraftOp = { kind: 'save'; draft: Draft } | { kind: 'clear' };
+let pendingOp: DraftOp | null = null;
+let flushing = false;
+let waiters: Array<(err: unknown) => void> = [];
+
+async function flushDraftQueue(): Promise<void> {
+  if (flushing) return;
+  flushing = true;
+  try {
+    while (pendingOp) {
+      const op = pendingOp;
+      pendingOp = null;
+      // この書き込みが完了するまでに溜まった待ち手を確定（以降の要求は次サイクルで処理）
+      const current = waiters;
+      waiters = [];
+      let error: unknown = null;
+      try {
+        if (op.kind === 'save') await saveDraft(op.draft);
+        else await clearDraft();
+      } catch (e) {
+        error = e;
+      }
+      for (const notify of current) notify(error);
+    }
+  } finally {
+    flushing = false;
+  }
+}
+
+function enqueueDraftOp(op: DraftOp): Promise<void> {
+  pendingOp = op; // 直前の保留要求は上書き（＝最新だけを書く）
+  return new Promise((resolve, reject) => {
+    waiters.push((err) => (err ? reject(err) : resolve()));
+    void flushDraftQueue();
+  });
+}
+
+/** 最新スナップショットの保存を直列キューへ積む */
+export function queueSaveDraft(draft: Draft): Promise<void> {
+  return enqueueDraftOp({ kind: 'save', draft });
+}
+
+/** 下書き削除を直列キューへ積む（保存中なら順番に実行される） */
+export function queueClearDraft(): Promise<void> {
+  return enqueueDraftOp({ kind: 'clear' });
+}
+
 export function draftItems(items: LogoItem[]): DraftItem[] {
   return items.map(({ id, fileName, baseName, areaOverride, originalFile }) => ({
     id,

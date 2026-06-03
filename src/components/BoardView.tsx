@@ -33,7 +33,8 @@ function FrameTile({
     const h = Math.max(1, Math.round(preset.height * s));
     canvas.width = w;
     canvas.height = h;
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     const previewSettings = previewWhiteBackground ? { ...settings, background: 'white' as const } : settings;
     const composed = composeToCanvas(item, preset, previewSettings);
     ctx.imageSmoothingQuality = 'high';

@@ -54,8 +54,25 @@ export function canvasToPngBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   });
 }
 
+/** Windows/macOS/Linux で扱いにくい文字 */
+const ILLEGAL_CHARS = '<>:"/\\|?*';
+/** 拡張子を除いたファイル名の最大長（マルチバイトでも安全側の文字数で丸める） */
+const MAX_BASE_LENGTH = 120;
+
+/** OS 横断で安全なファイル名要素にする（制御文字・不正文字を _ へ、前後の空白/ドットを除去） */
+function cleanComponent(value: string): string {
+  let out = '';
+  for (const ch of value) {
+    const code = ch.codePointAt(0) ?? 0;
+    out += code < 0x20 || code === 0x7f || ILLEGAL_CHARS.includes(ch) ? '_' : ch;
+  }
+  return out.replace(/^[\s.]+|[\s.]+$/g, '');
+}
+
 export function outputFileName(preset: OutputPreset, item: LogoItem): string {
-  const prefix = preset.prefix.replace(/[/\\]+/g, '_');
-  const baseName = item.baseName.replace(/[/\\]+/g, '_').trim() || 'logo';
-  return `${prefix}${baseName}.png`;
+  const prefix = cleanComponent(preset.prefix);
+  const base = cleanComponent(item.baseName) || 'logo';
+  let name = `${prefix}${base}`;
+  if (name.length > MAX_BASE_LENGTH) name = name.slice(0, MAX_BASE_LENGTH).replace(/[\s.]+$/g, '');
+  return `${name || 'logo'}.png`;
 }

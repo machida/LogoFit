@@ -6,7 +6,16 @@ import { PresetTable } from './components/PresetTable';
 import { SettingsPanel } from './components/SettingsPanel';
 import { SettingsPreview } from './components/SettingsPreview';
 import { Uploader } from './components/Uploader';
-import { clearDraft, draftItems, loadDraft, saveDraft } from './core/draft';
+import { draftItems, loadDraft, queueClearDraft, queueSaveDraft } from './core/draft';
+import {
+  ANALYZE_CONCURRENCY,
+  MAX_FILES,
+  MAX_FILE_BYTES,
+  MAX_TOTAL_OUTPUTS,
+  MAX_TOTAL_OUTPUT_PIXELS,
+  formatBytes,
+  mapLimit,
+} from './core/limits';
 import { loadLogo } from './core/loadLogo';
 import { DEFAULT_PRESETS, DEFAULT_SETTINGS } from './core/types';
 import type { GlobalSettings, LogoItem, OutputPreset } from './core/types';
@@ -16,7 +25,7 @@ export default function App() {
   const [items, setItems] = useState<LogoItem[]>([]);
   const [presets, setPresets] = useState<OutputPreset[]>(DEFAULT_PRESETS);
   const [settings, setSettings] = useState<GlobalSettings>(DEFAULT_SETTINGS);
-  const [previewPresetId, setPreviewPresetId] = useState<string>(DEFAULT_PRESETS[0].id);
+  const [previewPresetId, setPreviewPresetId] = useState<string>(DEFAULT_PRESETS[0]!.id);
   const [viewMode, setViewMode] = useState<'cards' | 'board'>('cards');
   const [previewWhiteBackground, setPreviewWhiteBackground] = useState(false);
   const [settingsExpanded, setSettingsExpanded] = useState(true);
@@ -27,16 +36,22 @@ export default function App() {
   const [draftStatus, setDraftStatus] = useState<'loading' | 'saving' | 'saved' | 'error'>('loading');
   const [restoreWarning, setRestoreWarning] = useState<string | null>(null);
   const [saveWarning, setSaveWarning] = useState<string | null>(null);
+  const [uploadNotice, setUploadNotice] = useState<string | null>(null);
   const [draftSaveEnabled, setDraftSaveEnabled] = useState(true);
   const saveSequence = useRef(0);
 
   const previewPreset = useMemo(
-    () => presets.find((p) => p.id === previewPresetId) ?? presets[0],
+    () => presets.find((p) => p.id === previewPresetId) ?? presets[0]!,
     [presets, previewPresetId],
   );
 
   const readyCount = items.filter((it) => it.status === 'ready').length;
-  const canGenerate = readyCount > 0 && presets.length > 0 && !generating && !analyzing;
+  const outputCount = readyCount * presets.length;
+  const outputPixels = readyCount * presets.reduce((sum, p) => sum + p.width * p.height, 0);
+  const overOutputLimit =
+    outputCount > MAX_TOTAL_OUTPUTS || outputPixels > MAX_TOTAL_OUTPUT_PIXELS;
+  const canGenerate =
+    readyCount > 0 && presets.length > 0 && !generating && !analyzing && !overOutputLimit;
 
   useEffect(() => {
     let cancelled = false;
@@ -52,23 +67,21 @@ export default function App() {
         setPreviewWhiteBackground(draft.previewWhiteBackground);
         if (draft.items.length > 0) {
           setAnalyzing({ done: 0, total: draft.items.length });
-          const restored = await Promise.all(
-            draft.items.map(async (saved) => {
-              const loaded = await loadLogo(saved.originalFile);
-              if (!cancelled) {
-                setAnalyzing((current) =>
-                  current ? { ...current, done: current.done + 1 } : current,
-                );
-              }
-              return {
-                ...loaded,
-                id: saved.id,
-                fileName: saved.fileName,
-                baseName: saved.baseName,
-                areaOverride: saved.areaOverride,
-              };
-            }),
-          );
+          const restored = await mapLimit(draft.items, ANALYZE_CONCURRENCY, async (saved) => {
+            const loaded = await loadLogo(saved.originalFile);
+            if (!cancelled) {
+              setAnalyzing((current) =>
+                current ? { ...current, done: current.done + 1 } : current,
+              );
+            }
+            return {
+              ...loaded,
+              id: saved.id,
+              fileName: saved.fileName,
+              baseName: saved.baseName,
+              areaOverride: saved.areaOverride,
+            };
+          });
           if (!cancelled) setItems(restored);
         }
       } catch (err) {
@@ -99,7 +112,7 @@ export default function App() {
     saveSequence.current = sequence;
     const timer = window.setTimeout(() => {
       setDraftStatus('saving');
-      void saveDraft({
+      void queueSaveDraft({
         version: 1,
         settings,
         presets,
@@ -132,16 +145,31 @@ export default function App() {
 
   const handleFiles = async (files: File[]) => {
     resumeDraftSaving();
-    setAnalyzing({ done: 0, total: files.length });
-    const loaded = await Promise.all(
-      files.map(async (file) => {
-        const item = await loadLogo(file);
-        setAnalyzing((current) =>
-          current ? { ...current, done: current.done + 1 } : current,
-        );
-        return item;
-      }),
-    );
+    setUploadNotice(null);
+
+    const notes: string[] = [];
+    // 1ファイルのサイズ上限
+    const tooBig = files.filter((f) => f.size > MAX_FILE_BYTES);
+    let accepted = files.filter((f) => f.size <= MAX_FILE_BYTES);
+    if (tooBig.length > 0) {
+      notes.push(`${tooBig.length}件が${formatBytes(MAX_FILE_BYTES)}を超えるため除外しました`);
+    }
+    // 総件数の上限（既存 + 新規）
+    const remaining = Math.max(0, MAX_FILES - items.length);
+    if (accepted.length > remaining) {
+      notes.push(`合計${MAX_FILES}件までのため、${accepted.length - remaining}件を取り込みませんでした`);
+      accepted = accepted.slice(0, remaining);
+    }
+    if (notes.length > 0) setUploadNotice(notes.join(' / '));
+    if (accepted.length === 0) return;
+
+    setAnalyzing({ done: 0, total: accepted.length });
+    // 同時実行数を制限して解析（メインスレッドの長時間ブロックとメモリ急増を避ける）
+    const loaded = await mapLimit(accepted, ANALYZE_CONCURRENCY, async (file) => {
+      const item = await loadLogo(file);
+      setAnalyzing((current) => (current ? { ...current, done: current.done + 1 } : current));
+      return item;
+    });
     setItems((prev) => [...prev, ...loaded]);
     setAnalyzing(null);
   };
@@ -166,7 +194,8 @@ export default function App() {
     if (!window.confirm('アップロード済みのロゴと個別調整をすべて削除しますか？')) return;
     resumeDraftSaving();
     setItems([]);
-    void clearDraft().catch((err) => {
+    setUploadNotice(null);
+    void queueClearDraft().catch((err) => {
       console.error('下書きの削除に失敗しました', err);
       setDraftStatus('error');
       setSaveWarning('下書きを削除できませんでした。ブラウザの保存領域を確認してください。');
@@ -216,6 +245,16 @@ export default function App() {
             {saveWarning}
           </div>
         )}
+        {uploadNotice && (
+          <div className="warning-banner" role="alert">
+            {uploadNotice}
+          </div>
+        )}
+        {overOutputLimit && (
+          <div className="warning-banner" role="alert">
+            総出力が上限を超えています（{outputCount}枚 / 上限{MAX_TOTAL_OUTPUTS}枚）。プリセットかロゴを減らしてください。
+          </div>
+        )}
         <section className="section">
           <h2 className="section__title">アップロード</h2>
           <Uploader onFiles={handleFiles} disabled={!hydrated || analyzing != null || generating} />
@@ -250,7 +289,7 @@ export default function App() {
                   // プレビュー対象が削除されたら有効な ID へ寄せる。
                   // 無効な previewPresetId を保存すると次回起動時に下書き検証で弾かれる。
                   if (next.length > 0 && !next.some((p) => p.id === previewPresetId)) {
-                    setPreviewPresetId(next[0].id);
+                    setPreviewPresetId(next[0]!.id);
                   }
                 }}
                 disabled={generating}
@@ -336,16 +375,21 @@ export default function App() {
               <button
                 className="btn btn--ghost btn--danger main__clear"
                 onClick={clearAll}
-                disabled={generating || items.length === 0}
+                disabled={generating || analyzing != null || items.length === 0}
               >
                 全消去
               </button>
-              <button className="btn btn--primary" onClick={handleGenerate} disabled={!canGenerate}>
+              <button
+                className="btn btn--primary"
+                onClick={handleGenerate}
+                disabled={!canGenerate}
+                title={overOutputLimit ? '総出力が上限を超えています' : undefined}
+              >
                 {generating
                   ? progress
                     ? `生成中 ${progress.done}/${progress.total}`
                     : '生成中…'
-                  : `ZIP生成（${readyCount * presets.length} 枚）`}
+                  : `ZIP生成（${outputCount} 枚）`}
               </button>
             </div>
           </div>

@@ -7,19 +7,23 @@ export interface SanitizedSvg {
 }
 
 const REMOVE_TAGS = new Set(['script', 'style', 'foreignobject', 'iframe', 'audio', 'video']);
-const SAFE_HREF = /^(#|data:image\/)/i;
+// data:image/svg+xml（入れ子 SVG）は再サニタイズされないため許可しない。
+// 内部参照(#...) と「ラスタ画像」の data URL のみ許可する。
+const SAFE_RASTER_DATA = /^data:image\/(png|jpe?g|gif|webp|bmp|avif)[;,]/i;
 const URL_REFERENCE = /url\(\s*(['"]?)(.*?)\1\s*\)/gi;
 
 function isExternalHref(value: string): boolean {
   const v = value.trim();
   if (v === '') return false;
-  // 内部参照(#...) と data:image のみ許可。それ以外(http, javascript, file, 相対URL)は除去
-  return !SAFE_HREF.test(v);
+  if (v.startsWith('#')) return false;
+  if (SAFE_RASTER_DATA.test(v)) return false;
+  // それ以外(http, javascript, file, 相対URL, data:image/svg+xml, data:text/* など)は除去
+  return true;
 }
 
 function hasUnsafeUrlReference(value: string): boolean {
   for (const match of value.matchAll(URL_REFERENCE)) {
-    if (!match[2].trim().startsWith('#')) return true;
+    if (!(match[2] ?? '').trim().startsWith('#')) return true;
   }
   return false;
 }
@@ -43,8 +47,8 @@ function resolveDimensions(svg: SVGSVGElement): { width: number; height: number 
   if (viewBox) {
     const parts = viewBox.split(/[\s,]+/).map(Number);
     if (parts.length === 4 && parts.every((n) => Number.isFinite(n))) {
-      vbW = parts[2] > 0 ? parts[2] : null;
-      vbH = parts[3] > 0 ? parts[3] : null;
+      vbW = parts[2]! > 0 ? parts[2]! : null;
+      vbH = parts[3]! > 0 ? parts[3]! : null;
     }
   }
 

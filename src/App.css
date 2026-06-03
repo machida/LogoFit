@@ -632,6 +632,16 @@ a:focus-visible {
   font-size: 14px;
   margin: 10px 0;
 }
+.logo-card__warn {
+  margin: 0 0 14px;
+  padding: 8px 10px;
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  border-radius: var(--radius-sm);
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
 .logo-card__head {
   display: flex;
   align-items: center;
