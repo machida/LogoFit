@@ -47,6 +47,14 @@ function DimensionInput({
   onCommit: (value: number) => void;
 }) {
   const [draft, setDraft] = useState(String(value));
+  const [lastValue, setLastValue] = useState(value);
+
+  // 外部から value が更新されたら描画時にドラフトへ同期（effect を使わない React 公式パターン）。
+  // 編集確定や下書き復旧で同じ値に正規化された場合も反映される。
+  if (value !== lastValue) {
+    setLastValue(value);
+    setDraft(String(value));
+  }
 
   const commit = () => {
     const next = normalizeDimension(Number(draft));
@@ -119,7 +127,6 @@ export function PresetTable({ presets, settings, onChange, disabled = false }: P
                       <span>幅</span>
                       <span className="dim-input">
                         <DimensionInput
-                          key={`width-${p.width}`}
                           value={p.width}
                           disabled={disabled}
                           onCommit={(width) => update(p.id, { width })}
@@ -136,7 +143,6 @@ export function PresetTable({ presets, settings, onChange, disabled = false }: P
                       <span>高さ</span>
                       <span className="dim-input">
                         <DimensionInput
-                          key={`height-${p.height}`}
                           value={p.height}
                           disabled={disabled}
                           onCommit={(height) => update(p.id, { height })}

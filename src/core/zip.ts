@@ -17,6 +17,7 @@ export async function generateZip(
   presets: OutputPreset[],
   settings: GlobalSettings,
   onProgress?: (p: GenerateProgress) => void,
+  signal?: AbortSignal,
 ): Promise<Blob> {
   const ready = items.filter((it) => it.status === 'ready' && it.source && it.analysis);
   // UI 判定とは独立に core 側でも総量上限を防御する（別経路から呼ばれても安全に）
@@ -30,6 +31,8 @@ export async function generateZip(
 
   for (const preset of presets) {
     for (const item of ready) {
+      // 1枚ごとに中止要求を確認（重いPNGが多いケースで途中停止できる）
+      if (signal?.aborted) throw new DOMException('ZIP生成を中止しました', 'AbortError');
       const canvas = composeToCanvas(item, preset, settings);
       const blob = await canvasToPngBlob(canvas);
 

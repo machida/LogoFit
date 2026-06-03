@@ -41,6 +41,8 @@ export default function App() {
   const saveSequence = useRef(0);
   // 解析/復旧バッチの世代。中止やバッチ切替時に ++ して、古いバッチの結果適用を無効化する。
   const analysisToken = useRef(0);
+  // ZIP生成の中止用
+  const generateAbort = useRef<AbortController | null>(null);
 
   const previewPreset = useMemo(
     () => presets.find((p) => p.id === previewPresetId) ?? presets[0]!,
@@ -173,22 +175,25 @@ export default function App() {
     const token = ++analysisToken.current;
     const aborted = () => analysisToken.current !== token;
     setAnalyzing({ done: 0, total: accepted.length });
-    // 同時実行数を制限して解析（メインスレッドの長時間ブロックとメモリ急増を避ける）
-    const loaded = await mapLimit(
-      accepted,
-      ANALYZE_CONCURRENCY,
-      async (file) => {
-        const item = await loadLogo(file);
-        if (!aborted()) {
-          setAnalyzing((current) => (current ? { ...current, done: current.done + 1 } : current));
-        }
-        return item;
-      },
-      aborted,
-    );
-    if (aborted()) return; // 中止された場合はこのバッチを破棄
-    setItems((prev) => [...prev, ...loaded]);
-    setAnalyzing(null);
+    try {
+      // 同時実行数を制限して解析（メインスレッドの長時間ブロックとメモリ急増を避ける）
+      const loaded = await mapLimit(
+        accepted,
+        ANALYZE_CONCURRENCY,
+        async (file) => {
+          const item = await loadLogo(file);
+          if (!aborted()) {
+            setAnalyzing((current) => (current ? { ...current, done: current.done + 1 } : current));
+          }
+          return item;
+        },
+        aborted,
+      );
+      if (!aborted()) setItems((prev) => [...prev, ...loaded]); // 中止時はこのバッチを破棄
+    } finally {
+      // 想定外例外でも analyzing を必ず解除。ただし新バッチが始まっていれば触らない
+      setAnalyzing((current) => (aborted() ? current : null));
+    }
   };
 
   const cancelAnalysis = () => {
@@ -226,18 +231,26 @@ export default function App() {
 
   const handleGenerate = async () => {
     if (!canGenerate) return;
+    const controller = new AbortController();
+    generateAbort.current = controller;
     setGenerating(true);
     setProgress({ done: 0, total: readyCount * presets.length });
     try {
-      const blob = await generateZip(items, presets, settings, setProgress);
+      const blob = await generateZip(items, presets, settings, setProgress, controller.signal);
       downloadBlob(blob, 'logos.zip');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'ZIP 生成に失敗しました');
+      // 中止（AbortError）はユーザー操作なのでアラートを出さない
+      if (!(err instanceof DOMException && err.name === 'AbortError')) {
+        alert(err instanceof Error ? err.message : 'ZIP 生成に失敗しました');
+      }
     } finally {
       setGenerating(false);
       setProgress(null);
+      generateAbort.current = null;
     }
   };
+
+  const cancelGenerate = () => generateAbort.current?.abort();
 
   return (
     <div className="app">
@@ -421,6 +434,11 @@ export default function App() {
                     : '生成中…'
                   : `ZIP生成（${outputCount} 枚）`}
               </button>
+              {generating && (
+                <button type="button" className="btn btn--ghost btn--sm" onClick={cancelGenerate}>
+                  中止
+                </button>
+              )}
             </div>
           </div>
 
