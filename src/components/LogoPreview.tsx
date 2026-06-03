@@ -38,7 +38,10 @@ function drawOriginal(canvas: HTMLCanvasElement, item: LogoItem) {
   canvas.width = Math.max(1, Math.round(trim.width * scale));
   canvas.height = Math.max(1, Math.round(trim.height * scale));
   const ctx = canvas.getContext('2d');
-  if (!ctx) return;
+  if (!ctx) {
+    console.warn('元ロゴサムネイルの 2D コンテキストを取得できませんでした');
+    return;
+  }
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(
@@ -71,7 +74,10 @@ function drawFrame(
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext('2d');
-  if (!ctx) return;
+  if (!ctx) {
+    console.warn('補正後プレビューの 2D コンテキストを取得できませんでした');
+    return;
+  }
   ctx.clearRect(0, 0, w, h);
   const previewSettings = previewWhiteBackground ? { ...settings, background: 'white' as const } : settings;
   const composed = composeToCanvas(item, preset, previewSettings);

@@ -1,9 +1,36 @@
+import { MAX_SOURCE_PIXELS, MAX_SOURCE_SIDE } from './limits';
 import { sanitizeSvg } from './sanitizeSvg';
 
 /** SVG ラスタライズ時の最長辺(px)。解析と出力に十分な解像度を確保する */
 const SVG_BASE = 2048;
 /** 巨大 PNG を扱う際の最長辺の上限(px) */
 const PNG_MAX = 4096;
+
+/**
+ * PNG の IHDR から幅・高さを先読みする（先頭 24 バイトで判定）。
+ * 解凍爆弾（小さい圧縮ファイルでも巨大寸法）を Image へ渡す前に弾くため。
+ * PNG でない・壊れている場合は null を返す（呼び出し側で通常処理にフォールバック）。
+ */
+function readPngSize(buffer: ArrayBuffer): { width: number; height: number } | null {
+  if (buffer.byteLength < 24) return null;
+  const view = new DataView(buffer);
+  // PNG シグネチャ 89 50 4E 47 0D 0A 1A 0A
+  const sig = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+  for (let i = 0; i < sig.length; i++) {
+    if (view.getUint8(i) !== sig[i]) return null;
+  }
+  // IHDR は最初のチャンク：長さ(4) + "IHDR"(4) の後に width(4), height(4)（ビッグエンディアン）
+  const width = view.getUint32(16);
+  const height = view.getUint32(20);
+  if (width <= 0 || height <= 0) return null;
+  return { width, height };
+}
+
+function assertWithinSourceLimits(width: number, height: number): void {
+  if (width > MAX_SOURCE_SIDE || height > MAX_SOURCE_SIDE || width * height > MAX_SOURCE_PIXELS) {
+    throw new Error(`画像の寸法が大きすぎます（${width}×${height}）`);
+  }
+}
 
 export interface RasterResult {
   canvas: HTMLCanvasElement;
@@ -53,12 +80,18 @@ async function rasterizeSvg(text: string): Promise<HTMLCanvasElement> {
 }
 
 async function rasterizePng(file: File): Promise<HTMLCanvasElement> {
+  // デコード前に IHDR で寸法を確認し、巨大画像は Image へ渡さず弾く
+  const size = readPngSize(await file.arrayBuffer());
+  if (size) assertWithinSourceLimits(size.width, size.height);
+
   const url = URL.createObjectURL(file);
   try {
     const img = await loadImage(url);
     let w = img.naturalWidth;
     let h = img.naturalHeight;
     if (!w || !h) throw new Error('画像サイズを取得できませんでした');
+    // IHDR を読めなかった場合のフォールバック（デコード後の寸法でも上限チェック）
+    if (!size) assertWithinSourceLimits(w, h);
     const scale = Math.min(1, PNG_MAX / Math.max(w, h));
     w = Math.max(1, Math.round(w * scale));
     h = Math.max(1, Math.round(h * scale));

@@ -34,7 +34,10 @@ function FrameTile({
     canvas.width = w;
     canvas.height = h;
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      console.warn('並べて表示の 2D コンテキストを取得できませんでした');
+      return;
+    }
     const previewSettings = previewWhiteBackground ? { ...settings, background: 'white' as const } : settings;
     const composed = composeToCanvas(item, preset, previewSettings);
     ctx.imageSmoothingQuality = 'high';

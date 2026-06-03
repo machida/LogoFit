@@ -12,9 +12,9 @@ import {
   MAX_FILES,
   MAX_FILE_BYTES,
   MAX_TOTAL_OUTPUTS,
-  MAX_TOTAL_OUTPUT_PIXELS,
   formatBytes,
   mapLimit,
+  outputTotals,
 } from './core/limits';
 import { loadLogo } from './core/loadLogo';
 import { DEFAULT_PRESETS, DEFAULT_SETTINGS } from './core/types';
@@ -39,6 +39,8 @@ export default function App() {
   const [uploadNotice, setUploadNotice] = useState<string | null>(null);
   const [draftSaveEnabled, setDraftSaveEnabled] = useState(true);
   const saveSequence = useRef(0);
+  // 解析/復旧バッチの世代。中止やバッチ切替時に ++ して、古いバッチの結果適用を無効化する。
+  const analysisToken = useRef(0);
 
   const previewPreset = useMemo(
     () => presets.find((p) => p.id === previewPresetId) ?? presets[0]!,
@@ -46,20 +48,20 @@ export default function App() {
   );
 
   const readyCount = items.filter((it) => it.status === 'ready').length;
-  const outputCount = readyCount * presets.length;
-  const outputPixels = readyCount * presets.reduce((sum, p) => sum + p.width * p.height, 0);
-  const overOutputLimit =
-    outputCount > MAX_TOTAL_OUTPUTS || outputPixels > MAX_TOTAL_OUTPUT_PIXELS;
+  const { count: outputCount, exceeds: overOutputLimit } = outputTotals(readyCount, presets);
   const canGenerate =
     readyCount > 0 && presets.length > 0 && !generating && !analyzing && !overOutputLimit;
 
   useEffect(() => {
     let cancelled = false;
 
+    const token = ++analysisToken.current;
+    const aborted = () => cancelled || analysisToken.current !== token;
+
     const restore = async () => {
       try {
         const draft = await loadDraft();
-        if (!draft || cancelled) return;
+        if (!draft || aborted()) return;
         setSettings(draft.settings);
         setPresets(draft.presets);
         setPreviewPresetId(draft.previewPresetId);
@@ -67,22 +69,27 @@ export default function App() {
         setPreviewWhiteBackground(draft.previewWhiteBackground);
         if (draft.items.length > 0) {
           setAnalyzing({ done: 0, total: draft.items.length });
-          const restored = await mapLimit(draft.items, ANALYZE_CONCURRENCY, async (saved) => {
-            const loaded = await loadLogo(saved.originalFile);
-            if (!cancelled) {
-              setAnalyzing((current) =>
-                current ? { ...current, done: current.done + 1 } : current,
-              );
-            }
-            return {
-              ...loaded,
-              id: saved.id,
-              fileName: saved.fileName,
-              baseName: saved.baseName,
-              areaOverride: saved.areaOverride,
-            };
-          });
-          if (!cancelled) setItems(restored);
+          const restored = await mapLimit(
+            draft.items,
+            ANALYZE_CONCURRENCY,
+            async (saved) => {
+              const loaded = await loadLogo(saved.originalFile);
+              if (!aborted()) {
+                setAnalyzing((current) =>
+                  current ? { ...current, done: current.done + 1 } : current,
+                );
+              }
+              return {
+                ...loaded,
+                id: saved.id,
+                fileName: saved.fileName,
+                baseName: saved.baseName,
+                areaOverride: saved.areaOverride,
+              };
+            },
+            aborted,
+          );
+          if (!aborted()) setItems(restored);
         }
       } catch (err) {
         console.error('下書きの復旧に失敗しました', err);
@@ -163,14 +170,29 @@ export default function App() {
     if (notes.length > 0) setUploadNotice(notes.join(' / '));
     if (accepted.length === 0) return;
 
+    const token = ++analysisToken.current;
+    const aborted = () => analysisToken.current !== token;
     setAnalyzing({ done: 0, total: accepted.length });
     // 同時実行数を制限して解析（メインスレッドの長時間ブロックとメモリ急増を避ける）
-    const loaded = await mapLimit(accepted, ANALYZE_CONCURRENCY, async (file) => {
-      const item = await loadLogo(file);
-      setAnalyzing((current) => (current ? { ...current, done: current.done + 1 } : current));
-      return item;
-    });
+    const loaded = await mapLimit(
+      accepted,
+      ANALYZE_CONCURRENCY,
+      async (file) => {
+        const item = await loadLogo(file);
+        if (!aborted()) {
+          setAnalyzing((current) => (current ? { ...current, done: current.done + 1 } : current));
+        }
+        return item;
+      },
+      aborted,
+    );
+    if (aborted()) return; // 中止された場合はこのバッチを破棄
     setItems((prev) => [...prev, ...loaded]);
+    setAnalyzing(null);
+  };
+
+  const cancelAnalysis = () => {
+    analysisToken.current++; // 進行中バッチを無効化
     setAnalyzing(null);
   };
 
@@ -261,6 +283,9 @@ export default function App() {
           {analyzing && (
             <p className="analysis-progress" aria-live="polite">
               {analyzing.total}件を解析中 {analyzing.done}/{analyzing.total}
+              <button type="button" className="btn btn--ghost btn--sm analysis-cancel" onClick={cancelAnalysis}>
+                中止
+              </button>
             </p>
           )}
         </section>

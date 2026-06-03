@@ -533,10 +533,16 @@ a:focus-visible {
   appearance: none;
 }
 .analysis-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin: 10px 0 0;
   color: var(--accent-soft);
   font-size: 14px;
   font-weight: 700;
+}
+.analysis-cancel {
+  font-weight: 600;
 }
 .settings-link {
   margin-left: 12px;

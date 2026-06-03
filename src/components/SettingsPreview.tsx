@@ -29,7 +29,10 @@ function draw(canvas: HTMLCanvasElement, settings: GlobalSettings, preset: Outpu
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext('2d');
-  if (!ctx) return;
+  if (!ctx) {
+    console.warn('設定プレビューの 2D コンテキストを取得できませんでした');
+    return;
+  }
   ctx.clearRect(0, 0, w, h);
 
   if (settings.background === 'white') {
