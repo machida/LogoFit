@@ -36,7 +36,7 @@ function assertWithinSourceLimits(width: number, height: number): void {
 
 export interface RasterResult {
   canvas: HTMLCanvasElement;
-  kind: 'svg' | 'png' | 'pdf';
+  kind: 'svg' | 'png' | 'pdf' | 'ai';
 }
 
 function loadImage(url: string): Promise<HTMLImageElement> {
@@ -144,16 +144,46 @@ async function rasterizePdf(file: File): Promise<HTMLCanvasElement> {
   }
 }
 
-/** SVG / PNG / PDF ファイルを読み込み、解析・合成に使えるソースキャンバスへラスタライズする */
+/**
+ * Illustrator の .ai をラスタライズする。
+ * モダンな .ai は既定で「PDF互換」保存され中身に PDF ストリームを含むため pdf.js で描画できる。
+ * 古い（PDF非互換）.ai は対象外。先頭を覗いて %PDF が無ければ明示エラーにする。
+ */
+async function rasterizeAi(file: File): Promise<HTMLCanvasElement> {
+  const head = await file.slice(0, 1024).text();
+  if (!head.includes('%PDF-')) {
+    throw new Error(
+      'この .ai は PDF 互換で保存されていないため読み込めません。Illustrator で「PDF互換ファイルを作成」を有効にして保存し直すか、SVG / PDF で書き出してください。',
+    );
+  }
+  try {
+    return await rasterizePdf(file);
+  } catch (err) {
+    throw new Error(
+      '.ai の読み込みに失敗しました。PDF 互換で保存し直すか、SVG / PDF で書き出してください。',
+      { cause: err },
+    );
+  }
+}
+
+/** SVG / PNG / PDF / AI ファイルを読み込み、解析・合成に使えるソースキャンバスへラスタライズする */
 export async function rasterize(file: File): Promise<RasterResult> {
   const name = file.name.toLowerCase();
   const isSvg = file.type === 'image/svg+xml' || name.endsWith('.svg');
   const isPng = file.type === 'image/png' || name.endsWith('.png');
+  // .ai は PDF より先に判定する（.ai が application/pdf 等で届くことがあるため）
+  const isAi =
+    name.endsWith('.ai') ||
+    file.type === 'application/illustrator' ||
+    file.type === 'application/postscript';
   const isPdf = file.type === 'application/pdf' || name.endsWith('.pdf');
 
   if (isSvg) {
     const text = await file.text();
     return { canvas: await rasterizeSvg(text), kind: 'svg' };
+  }
+  if (isAi) {
+    return { canvas: await rasterizeAi(file), kind: 'ai' };
   }
   if (isPng) {
     return { canvas: await rasterizePng(file), kind: 'png' };
@@ -161,5 +191,5 @@ export async function rasterize(file: File): Promise<RasterResult> {
   if (isPdf) {
     return { canvas: await rasterizePdf(file), kind: 'pdf' };
   }
-  throw new Error('対応していないファイル形式です（SVG / PNG / PDF のみ）');
+  throw new Error('対応していないファイル形式です（SVG / PNG / PDF / AI のみ）');
 }

@@ -51,6 +51,16 @@ describe('rasterize source limits', () => {
 describe('rasterize file type detection', () => {
   it('reports the supported formats in the unsupported-file error', async () => {
     const file = new File(['x'], 'x.txt', { type: 'text/plain' });
-    await expect(rasterize(file)).rejects.toThrow('SVG / PNG / PDF');
+    await expect(rasterize(file)).rejects.toThrow('SVG / PNG / PDF / AI');
+  });
+});
+
+describe('rasterize .ai handling', () => {
+  it('rejects a non-PDF-compatible (old) .ai with guidance', async () => {
+    // %PDF を含まない＝PDF互換でない古い .ai（EPS ベース）
+    const file = new File(['%!PS-Adobe-3.0 EPSF-3.0\n%%Creator: Adobe Illustrator\n'], 'old.ai', {
+      type: 'application/postscript',
+    });
+    await expect(rasterize(file)).rejects.toThrow(/PDF 互換/);
   });
 });
