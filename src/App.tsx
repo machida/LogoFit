@@ -444,7 +444,7 @@ export default function App() {
 
           {items.length === 0 ? (
             <div className="empty">
-              <p>まだロゴがありません。上のエリアに SVG / PNG をドロップしてください。</p>
+              <p>まだロゴがありません。上のエリアに SVG / PNG / PDF をドロップしてください。</p>
             </div>
           ) : viewMode === 'board' ? (
             <BoardView

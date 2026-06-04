@@ -45,7 +45,7 @@ export function Uploader({ onFiles, disabled = false }: Props) {
       <input
         ref={inputRef}
         type="file"
-        accept=".svg,.png,image/svg+xml,image/png"
+        accept=".svg,.png,.pdf,image/svg+xml,image/png,application/pdf"
         multiple
         disabled={disabled}
         hidden
@@ -56,7 +56,7 @@ export function Uploader({ onFiles, disabled = false }: Props) {
       />
       <div className="uploader__icon">⬆</div>
       <p className="uploader__title">ロゴをドラッグ&ドロップ</p>
-      <p className="uploader__hint">またはクリックして選択（SVG / PNG・複数可）</p>
+      <p className="uploader__hint">またはクリックして選択（SVG / PNG / PDF・複数可）</p>
     </div>
   );
 }

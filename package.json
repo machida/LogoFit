@@ -2,6 +2,7 @@
   "name": "logofit",
   "private": true,
   "version": "0.0.0",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,6 +13,7 @@
   },
   "dependencies": {
     "jszip": "^3.10.1",
+    "pdfjs-dist": "^6.0.227",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },

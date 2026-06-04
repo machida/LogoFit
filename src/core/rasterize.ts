@@ -3,6 +3,8 @@ import { sanitizeSvg } from './sanitizeSvg';
 
 /** SVG ラスタライズ時の最長辺(px)。解析と出力に十分な解像度を確保する */
 const SVG_BASE = 2048;
+/** PDF ラスタライズ時の最長辺(px)。初期対応は1ページ目をこの解像度へ固定 */
+const PDF_BASE = 2048;
 /** 巨大 PNG を扱う際の最長辺の上限(px) */
 const PNG_MAX = 4096;
 
@@ -34,7 +36,7 @@ function assertWithinSourceLimits(width: number, height: number): void {
 
 export interface RasterResult {
   canvas: HTMLCanvasElement;
-  kind: 'svg' | 'png';
+  kind: 'svg' | 'png' | 'pdf';
 }
 
 function loadImage(url: string): Promise<HTMLImageElement> {
@@ -109,11 +111,45 @@ async function rasterizePng(file: File): Promise<HTMLCanvasElement> {
   }
 }
 
-/** SVG / PNG ファイルを読み込み、解析・合成に使えるソースキャンバスへラスタライズする */
+async function rasterizePdf(file: File): Promise<HTMLCanvasElement> {
+  const [{ getDocument, GlobalWorkerOptions }, worker] = await Promise.all([
+    import('pdfjs-dist'),
+    import('pdfjs-dist/build/pdf.worker.mjs?url'),
+  ]);
+  GlobalWorkerOptions.workerSrc = worker.default;
+
+  const loadingTask = getDocument({ data: new Uint8Array(await file.arrayBuffer()) });
+  const pdf = await loadingTask.promise;
+  try {
+    if (pdf.numPages < 1) throw new Error('PDF にページがありません');
+
+    // 初期対応はロゴ素材として届いた PDF の1ページ目のみを使う。
+    const page = await pdf.getPage(1);
+    const baseViewport = page.getViewport({ scale: 1 });
+    if (!baseViewport.width || !baseViewport.height) {
+      throw new Error('PDF のページサイズを取得できませんでした');
+    }
+    const scale = PDF_BASE / Math.max(baseViewport.width, baseViewport.height);
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(viewport.width));
+    canvas.height = Math.max(1, Math.round(viewport.height));
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('ラスタライズ用Canvasを作成できませんでした');
+    await page.render({ canvas, canvasContext: ctx, viewport }).promise;
+    return canvas;
+  } finally {
+    await pdf.cleanup();
+    await loadingTask.destroy();
+  }
+}
+
+/** SVG / PNG / PDF ファイルを読み込み、解析・合成に使えるソースキャンバスへラスタライズする */
 export async function rasterize(file: File): Promise<RasterResult> {
   const name = file.name.toLowerCase();
   const isSvg = file.type === 'image/svg+xml' || name.endsWith('.svg');
   const isPng = file.type === 'image/png' || name.endsWith('.png');
+  const isPdf = file.type === 'application/pdf' || name.endsWith('.pdf');
 
   if (isSvg) {
     const text = await file.text();
@@ -122,5 +158,8 @@ export async function rasterize(file: File): Promise<RasterResult> {
   if (isPng) {
     return { canvas: await rasterizePng(file), kind: 'png' };
   }
-  throw new Error('対応していないファイル形式です（SVG / PNG のみ）');
+  if (isPdf) {
+    return { canvas: await rasterizePdf(file), kind: 'pdf' };
+  }
+  throw new Error('対応していないファイル形式です（SVG / PNG / PDF のみ）');
 }

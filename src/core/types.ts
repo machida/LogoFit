@@ -54,7 +54,7 @@ export interface LogoItem {
   fileName: string;
   /** 拡張子を除いたベース名（出力ファイル名に使用） */
   baseName: string;
-  kind: 'svg' | 'png';
+  kind: 'svg' | 'png' | 'pdf';
   /** 再読み込み時の復旧用。IndexedDB に保存するアップロード元ファイル */
   originalFile: File;
   /** ラスタライズ済みのソース。解析・合成の両方で使う */

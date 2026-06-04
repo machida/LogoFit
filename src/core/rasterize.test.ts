@@ -47,3 +47,10 @@ describe('rasterize source limits', () => {
     await expect(rasterize(pngFile(side, Math.min(tall, MAX_SOURCE_SIDE)))).rejects.toThrow(/寸法/);
   });
 });
+
+describe('rasterize file type detection', () => {
+  it('reports the supported formats in the unsupported-file error', async () => {
+    const file = new File(['x'], 'x.txt', { type: 'text/plain' });
+    await expect(rasterize(file)).rejects.toThrow('SVG / PNG / PDF');
+  });
+});
